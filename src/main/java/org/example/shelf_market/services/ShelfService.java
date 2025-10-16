@@ -6,6 +6,7 @@ import org.example.shelf_market.entities.ShelfGroup;
 import org.example.shelf_market.repositories.ShelfRepository;
 import org.example.shelf_market.repositories.ShelfGroupRepository;
 import org.example.shelf_market.dto.DtoFactory;
+import org.example.shelf_market.command.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +24,9 @@ public class ShelfService implements ShelfServiceInterface {
 
     @Autowired
     private DtoFactory dtoFactory;
+
+    private final CommandInvoker commandInvoker = new CommandInvoker();
+
     public List<ShelfDTO> getAllShelves() {
         return shelfRepository.findAll().stream()
                 .map(dtoFactory::createShelfDTO)
@@ -65,6 +69,46 @@ public class ShelfService implements ShelfServiceInterface {
 
     public void deleteShelf(Integer id) {
         shelfRepository.deleteById(id);
+    }
+
+    public void bookShelf(Integer shelfId, Integer userId) {
+        Command command = new BookShelfCommand(this, shelfId, userId);
+        commandInvoker.executeCommand(command);
+    }
+
+    // Отменить бронирование через паттерн Command
+    public void cancelBooking(Integer id) {
+        Command command = new CancelBookingCommand(this, id);
+        commandInvoker.executeCommand(command);
+    }
+
+    // Отменить последнюю операцию (undo)
+    public void undoLastAction() {
+        commandInvoker.undoLast();
+    }
+
+    public void bookShelfInternal(Integer id) {
+        Shelf shelf = shelfRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Shelf not found"));
+        if (Boolean.TRUE.equals(shelf.getBooked())) {
+            System.out.println("Полка уже забронирована.");
+            return;
+        }
+        shelf.setBooked(true);
+        shelfRepository.save(shelf);
+        System.out.println("Полка " + id + " успешно забронирована.");
+    }
+
+    public void cancelBookingInternal(Integer id) {
+        Shelf shelf = shelfRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Shelf not found"));
+        if (Boolean.FALSE.equals(shelf.getBooked())) {
+            System.out.println("Полка уже свободна.");
+            return;
+        }
+        shelf.setBooked(false);
+        shelfRepository.save(shelf);
+        System.out.println("Бронирование полки " + id + " отменено.");
     }
 
     private Shelf convertToEntity(ShelfDTO shelfDTO) {

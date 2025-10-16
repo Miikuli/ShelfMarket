@@ -9,6 +9,7 @@ import org.example.shelf_market.dto.DtoFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.example.shelf_market.observer.*;
 
 import java.util.UUID;
 
@@ -23,6 +24,7 @@ public class BookingFacade {
 
     @Autowired
     private DtoFactory dtoFactory; // Используем вашу фабрику
+    private final ShelfSubject subject = new ShelfSubject();
 
     @Transactional
     public ShelfDTO bookShelf(Integer shelfId, UUID userId) {
@@ -43,7 +45,7 @@ public class BookingFacade {
         shelf.setBooked(true);
         shelf.setUser(user);
         Shelf updatedShelf = shelfRepository.save(shelf);
-
+        subject.notifyObservers(shelfId, "Полка забронирована пользователем " + userId);
         System.out.println("✅ Shelf " + shelfId + " booked by user " + user.getUsername());
 
         // 5. Возвращаем DTO через фабрику
@@ -58,7 +60,7 @@ public class BookingFacade {
         shelf.setBooked(false);
         shelf.setUser(null);
         Shelf updatedShelf = shelfRepository.save(shelf);
-
+        subject.notifyObservers(shelfId, "Бронирование отменено");
         System.out.println("✅ Booking canceled for shelf " + shelfId);
 
         return dtoFactory.createShelfDTO(updatedShelf);
