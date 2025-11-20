@@ -1,7 +1,9 @@
 package org.example.shelf_market.observer;
 
 import org.example.shelf_market.services.EmailService;
+import org.springframework.stereotype.Component;
 
+@Component
 public class EmailObserver implements ShelfObserver {
     private final EmailService emailService;
 

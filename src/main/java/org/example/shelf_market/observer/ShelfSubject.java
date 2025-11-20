@@ -1,8 +1,11 @@
 package org.example.shelf_market.observer;
 
+import org.springframework.stereotype.Component;
+
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
 public class ShelfSubject {
     private final List<ShelfObserver> observers = new ArrayList<>();
 

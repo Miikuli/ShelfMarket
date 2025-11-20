@@ -36,8 +36,23 @@ public class ShelfController {
     }
 
     @PostMapping
-    public ShelfDTO createShelf(@RequestBody ShelfDTO shelfDTO) {
-        return shelfService.createShelf(shelfDTO);
+    public ResponseEntity<ShelfDTO> createShelf(@RequestBody ShelfDTO shelfDTO) {
+        try {
+            // ВАЛИДАЦИЯ: проверяем обязательные поля
+            if (shelfDTO.getShelfGroupNumber() == null) {
+                return ResponseEntity.badRequest().build();
+            }
+
+            // Если полка создается как забронированная, должен быть указан пользователь
+            if (Boolean.TRUE.equals(shelfDTO.getBooked()) && shelfDTO.getUserId() == null) {
+                return ResponseEntity.badRequest().build();
+            }
+
+            ShelfDTO created = shelfService.createShelf(shelfDTO);
+            return ResponseEntity.ok(created);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @PutMapping("/{id}")

@@ -5,14 +5,13 @@ import lombok.Setter;
 
 import java.util.UUID;
 
-
 @Getter
 @Setter
 public class ShelfDTO {
     private Integer id;
     private Boolean booked;
     private Integer shelfGroupNumber;
-    private UUID userId;
+    private UUID userId;  // Может быть null
 
     // Конструкторы
     public ShelfDTO() {}
@@ -21,6 +20,6 @@ public class ShelfDTO {
         this.id = id;
         this.booked = booked;
         this.shelfGroupNumber = shelfGroupNumber;
-        this.userId = userId;
+        this.userId = userId;  // Может быть null
     }
 }

@@ -2,20 +2,23 @@ package org.example.shelf_market.dto;
 
 import org.example.shelf_market.entities.Shelf;
 import org.example.shelf_market.entities.ShelfGroup;
-import org.example.shelf_market.dto.ShelfDTO;
-import org.example.shelf_market.dto.ShelfGroupDTO;
 import org.example.shelf_market.entities.User;
 import org.springframework.stereotype.Component;
+
+import java.util.UUID;
 
 @Component
 public class DtoFactory {
 
     public ShelfDTO createShelfDTO(Shelf shelf) {
+        // ИСПРАВЛЕНИЕ: проверяем на null перед вызовом getUser().getId()
+        UUID userId = (shelf.getUser() != null) ? shelf.getUser().getId() : null;
+
         return new ShelfDTO(
                 shelf.getId(),
                 shelf.getBooked(),
                 shelf.getShelfGroup().getNumber(),
-                shelf.getUser().getId()
+                userId  // Может быть null если полка свободна
         );
     }
 

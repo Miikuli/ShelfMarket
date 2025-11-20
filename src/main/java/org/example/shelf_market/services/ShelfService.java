@@ -3,14 +3,17 @@ package org.example.shelf_market.services;
 import org.example.shelf_market.dto.ShelfDTO;
 import org.example.shelf_market.entities.Shelf;
 import org.example.shelf_market.entities.ShelfGroup;
+import org.example.shelf_market.entities.User;
 import org.example.shelf_market.repositories.ShelfRepository;
 import org.example.shelf_market.repositories.ShelfGroupRepository;
 import org.example.shelf_market.dto.DtoFactory;
 import org.example.shelf_market.command.*;
+import org.example.shelf_market.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service("shelfService")
@@ -24,6 +27,9 @@ public class ShelfService implements ShelfServiceInterface {
 
     @Autowired
     private DtoFactory dtoFactory;
+
+    @Autowired
+    private UserRepository userRepository;
 
     private final CommandInvoker commandInvoker = new CommandInvoker();
 
@@ -71,7 +77,7 @@ public class ShelfService implements ShelfServiceInterface {
         shelfRepository.deleteById(id);
     }
 
-    public void bookShelf(Integer shelfId, Integer userId) {
+    public void bookShelf(Integer shelfId, UUID userId) {
         Command command = new BookShelfCommand(this, shelfId, userId);
         commandInvoker.executeCommand(command);
     }
@@ -116,9 +122,19 @@ public class ShelfService implements ShelfServiceInterface {
         shelf.setId(shelfDTO.getId());
         shelf.setBooked(shelfDTO.getBooked());
 
+        // Находим группу полок
         ShelfGroup shelfGroup = shelfGroupRepository.findById(shelfDTO.getShelfGroupNumber())
                 .orElseThrow(() -> new RuntimeException("ShelfGroup not found"));
         shelf.setShelfGroup(shelfGroup);
+
+        // ИСПРАВЛЕНИЕ: устанавливаем пользователя только если он указан и полка забронирована
+        if (shelfDTO.getUserId() != null && Boolean.TRUE.equals(shelfDTO.getBooked())) {
+            User user = userRepository.findById(shelfDTO.getUserId())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            shelf.setUser(user);
+        } else {
+            shelf.setUser(null);  // Явно устанавливаем null для свободной полки
+        }
 
         return shelf;
     }
