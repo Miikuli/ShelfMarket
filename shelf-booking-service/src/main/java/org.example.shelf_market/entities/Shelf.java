@@ -14,12 +14,11 @@ import java.util.UUID;
 @Table(name = "shelf", schema ="shelf_market")
 public class Shelf {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Integer id;
 
-    @Column(name = "booked", nullable = false, length = 64)
-    private Boolean booked;
+    @Column(name = "booked", nullable = false)
+    private Boolean booked = false;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
@@ -28,4 +27,8 @@ public class Shelf {
 
     @Column(name = "user_id", columnDefinition = "UUID")
     private UUID userId;
+
+    public Shelf() {
+        this.booked = false;
+    }
 }

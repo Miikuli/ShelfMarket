@@ -14,4 +14,10 @@ public interface UserServiceClient {
 
     @GetMapping("/api/users/{id}/exists")
     Boolean userExists(@PathVariable("id") UUID id);
+
+    @GetMapping("/api/users/{username}/role")
+    String getUserRole(@PathVariable String username);
+
+    @GetMapping("/api/users/username/{username}")
+    UserResponseDTO getUserByUsername(@PathVariable String username);
 }

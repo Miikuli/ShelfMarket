@@ -1,12 +1,15 @@
 package org.example.shelf_market.controllers;
 
 import org.example.shelf_market.dto.ShelfDTO;
+import org.example.shelf_market.dto.UserResponseDTO;
 import org.example.shelf_market.facade.BookingFacade;
+import org.example.shelf_market.client.UserServiceClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.UUID;
 
@@ -19,6 +22,9 @@ public class BookingController {
     @Autowired
     private BookingFacade bookingFacade;
 
+    @Autowired
+    private UserServiceClient userServiceClient;
+
     @PostMapping("/shelf/{shelfId}/user/{userId}")
     public ResponseEntity<ShelfDTO> bookShelf(
             @PathVariable Integer shelfId,
@@ -30,9 +36,13 @@ public class BookingController {
     }
 
     @PostMapping("/shelf/{shelfId}/cancel")
-    public ResponseEntity<ShelfDTO> cancelBooking(@PathVariable Integer shelfId) {
-        logger.info("Cancel booking request for shelf {}", shelfId);
-        ShelfDTO result = bookingFacade.cancelBooking(shelfId);
+    public ResponseEntity<ShelfDTO> cancelBooking(@PathVariable Integer shelfId, HttpServletRequest request) {
+        String username = (String) request.getAttribute("username");
+        UUID userId = UUID.fromString((String) request.getAttribute("userId"));
+        String role = (String) request.getAttribute("role");
+        boolean isAdmin = "ADMIN".equals(role);
+        logger.info("Cancel booking request for shelf {} by user {}", shelfId, userId);
+        ShelfDTO result = bookingFacade.cancelBooking(shelfId, userId, isAdmin);
         return ResponseEntity.ok(result);
     }
 

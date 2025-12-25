@@ -9,12 +9,18 @@ import org.example.shelf_market.repositories.ShelfRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 public class ShelfGroupService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ShelfGroupService.class);
 
     @Autowired
     private ShelfGroupRepository shelfGroupRepository;
@@ -24,6 +30,9 @@ public class ShelfGroupService {
 
     @Autowired
     private DtoFactory dtoFactory;
+
+    @PersistenceContext
+    private EntityManager em;
 
     public List<ShelfGroupDTO> getAllShelfGroups() {
         return shelfGroupRepository.findAll().stream()
@@ -37,10 +46,14 @@ public class ShelfGroupService {
         return dtoFactory.createShelfGroupDTO(shelfGroup);
     }
 
+    @Transactional
     public ShelfGroupDTO createShelfGroup(ShelfGroupDTO shelfGroupDTO) {
+        logger.info("Creating shelf group with DTO number: {}, booked: {}", shelfGroupDTO.getNumber(), shelfGroupDTO.getBooked());
         ShelfGroup shelfGroup = convertToEntity(shelfGroupDTO);
-        ShelfGroup saved = shelfGroupRepository.save(shelfGroup);
-        return dtoFactory.createShelfGroupDTO(saved);
+        logger.info("Converted entity number: {}, booked: {}", shelfGroup.getNumber(), shelfGroup.getBooked());
+        em.merge(shelfGroup);
+        logger.info("Persisted entity number: {}", shelfGroup.getNumber());
+        return dtoFactory.createShelfGroupDTO(shelfGroup);
     }
 
     /**
@@ -95,9 +108,11 @@ public class ShelfGroupService {
     }
 
     private ShelfGroup convertToEntity(ShelfGroupDTO shelfGroupDTO) {
+        logger.info("Converting DTO number: {}, booked: {}", shelfGroupDTO.getNumber(), shelfGroupDTO.getBooked());
         ShelfGroup shelfGroup = new ShelfGroup();
         shelfGroup.setNumber(shelfGroupDTO.getNumber());
-        shelfGroup.setBooked(shelfGroupDTO.getBooked());
+        shelfGroup.setBooked(shelfGroupDTO.getBooked() != null ? shelfGroupDTO.getBooked() : false);
+        logger.info("Created entity number: {}, booked: {}", shelfGroup.getNumber(), shelfGroup.getBooked());
         return shelfGroup;
     }
 

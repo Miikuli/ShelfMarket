@@ -14,6 +14,9 @@ import org.example.shelf_market.dto.DtoFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
+import org.springframework.transaction.annotation.Transactional;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 import java.util.List;
 import java.util.Objects;
@@ -38,6 +41,9 @@ public class ShelfService implements ShelfServiceInterface {
     @Autowired
     private UserServiceClient userServiceClient;  // ← Feign Client вместо UserRepository
 
+    @PersistenceContext
+    private EntityManager em;
+
     private final CommandInvoker commandInvoker = new CommandInvoker();
 
     public List<ShelfDTO> getAllShelves() {
@@ -58,10 +64,15 @@ public class ShelfService implements ShelfServiceInterface {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public ShelfDTO createShelf(ShelfDTO shelfDTO) {
+        System.out.println("Creating shelf with id: " + shelfDTO.getId() + ", group: " + shelfDTO.getShelfGroupNumber());
+        if (shelfDTO.getId() != null && shelfRepository.existsById(shelfDTO.getId())) {
+            throw new RuntimeException("Shelf with id " + shelfDTO.getId() + " already exists");
+        }
         Shelf shelf = convertToEntity(shelfDTO);
-        Shelf saved = shelfRepository.save(shelf);
-        return dtoFactory.createShelfDTO(saved);
+        shelf = shelfRepository.save(shelf);
+        return dtoFactory.createShelfDTO(shelf);
     }
 
     public ShelfDTO updateShelf(Integer id, ShelfDTO shelfDTO) {

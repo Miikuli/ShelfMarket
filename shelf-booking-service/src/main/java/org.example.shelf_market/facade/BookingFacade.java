@@ -86,8 +86,8 @@ public class BookingFacade {
     }
 
     @Transactional
-    public ShelfDTO cancelBooking(Integer shelfId) {
-        logger.info("Attempting to cancel booking for shelf {}", shelfId);
+    public ShelfDTO cancelBooking(Integer shelfId, UUID currentUserId, boolean isAdmin) {
+        logger.info("Attempting to cancel booking for shelf {} by user {}", shelfId, currentUserId);
 
         try {
             // 1. Находим полку
@@ -97,6 +97,11 @@ public class BookingFacade {
             // 2. Проверяем, что полка действительно забронирована
             if (Boolean.FALSE.equals(shelf.getBooked())) {
                 throw new ShelfNotBookedException(shelfId);
+            }
+
+            // 3. Проверяем авторизацию: пользователь должен быть владельцем брони или админом
+            if (!shelf.getUserId().equals(currentUserId) && !isAdmin) {
+                throw new UnauthorizedCancellationException("Unauthorized to cancel this booking");
             }
 
             // 3. Сохраняем номер группы для обновления статуса

@@ -18,7 +18,7 @@ public class User {
     @Column(name = "id", updatable = false, nullable = false, columnDefinition = "UUID")
     private UUID id;
 
-    @Column(name = "username", nullable = false)
+    @Column(name = "username", nullable = false, unique = true)
     private String username;
 
     @Column(name = "password", nullable = false)
@@ -33,21 +33,26 @@ public class User {
     @Column(name = "phone_number", nullable = false)
     private String phoneNumber;
 
-    @Column(name = "email", nullable = false)
+    @Column(name = "email", nullable = false, unique = true)
     private String email;
+
+    // ПРОСТО СТРОКА С РОЛЬЮ - без отдельной сущности!
+    @Column(name = "role", nullable = false, length = 50)
+    private String role = "USER";
 
     // Конструктор по умолчанию для JPA
     public User() {}
 
     // Приватный конструктор для Builder'а
     private User(String username, String password, String name,
-                 String surname, String phoneNumber, String email) {
+                 String surname, String phoneNumber, String email, String role) {
         this.username = username;
         this.password = password;
         this.name = name;
         this.surname = surname;
         this.phoneNumber = phoneNumber;
         this.email = email;
+        this.role = role;
     }
 
     // Статический метод для получения Builder'а
@@ -63,6 +68,7 @@ public class User {
         private String surname;
         private String phoneNumber;
         private String email;
+        private String role = "USER";  // Значение по умолчанию
 
         public UserBuilder username(String username) {
             this.username = username;
@@ -94,13 +100,18 @@ public class User {
             return this;
         }
 
+        public UserBuilder role(String role) {
+            this.role = role;
+            return this;
+        }
+
         public User build() {
             // Валидация
             if (username == null || password == null || name == null ||
                     surname == null || phoneNumber == null || email == null) {
                 throw new IllegalStateException("All fields are required");
             }
-            return new User(username, password, name, surname, phoneNumber, email);
+            return new User(username, password, name, surname, phoneNumber, email, role);
         }
     }
 }

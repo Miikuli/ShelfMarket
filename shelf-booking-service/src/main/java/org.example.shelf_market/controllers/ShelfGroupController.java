@@ -9,8 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
+import org.example.shelf_market.client.UserServiceClient;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/shelf-groups")
@@ -21,6 +24,9 @@ public class ShelfGroupController {
 
     @Autowired
     private ShelfRepository shelfRepository;
+
+    @Autowired
+    private UserServiceClient userServiceClient;
 
     @GetMapping
     public List<ShelfGroupDTO> getAllShelfGroups() {
@@ -38,7 +44,11 @@ public class ShelfGroupController {
     }
 
     @PostMapping
-    public ShelfGroupDTO createShelfGroup(@RequestBody ShelfGroupDTO shelfGroupDTO) {
+    public ShelfGroupDTO createShelfGroup(HttpServletRequest request, @RequestBody ShelfGroupDTO shelfGroupDTO) {
+        String role = (String) request.getAttribute("role");
+        if (!"ADMIN".equals(role)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only admins can create shelf groups");
+        }
         return shelfGroupService.createShelfGroup(shelfGroupDTO);
     }
 

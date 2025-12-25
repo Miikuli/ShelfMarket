@@ -13,23 +13,20 @@ import java.util.UUID;
 @Repository
 public interface UserRepository extends JpaRepository<User, UUID> { // ← ИЗМЕНИТЬ НА UUID!
 
-    // Найти пользователя по username
     Optional<User> findByUsername(String username);
-
-    // Найти пользователя по email
     Optional<User> findByEmail(String email);
-
-    // Поиск по имени и фамилии
     List<User> findByNameContainingIgnoreCaseAndSurnameContainingIgnoreCase(String name, String surname);
-
-    // Проверить существование пользователя по username
     boolean existsByUsername(String username);
-
-    // Проверить существование пользователя по email
     boolean existsByEmail(String email);
+    boolean existsByPhoneNumber(String phoneNumber);
 
-    // Кастомный запрос для поиска по части имени
-    @Query("SELECT u FROM User u WHERE LOWER(u.name) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(u.surname) LIKE LOWER(CONCAT('%', :query, '%'))")
+    @Query("SELECT u FROM User u WHERE LOWER(u.name) LIKE LOWER(CONCAT('%', :query, '%')) " +
+            "OR LOWER(u.surname) LIKE LOWER(CONCAT('%', :query, '%'))")
     List<User> searchUsers(@Param("query") String query);
+
+    // Новые методы для работы с ролями
+    List<User> findByRole(String role);
+    long countByRole(String role);
+    Optional<User> findByUsernameAndRole(String username, String role);
 
 }
