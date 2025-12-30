@@ -1,0 +1,50 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "http://localhost:3000"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+
+      routes:
+        # Routes for user-service
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/auth/**,/api/users/**
+          filters:
+            - name: AuthFilter
+
+        # Routes for shelf-booking-service
+        - id: shelf-booking-service
+          uri: lb://shelf-booking-service
+          predicates:
+            - Path=/api/shelves/**,/api/shelf-groups/**,/api/bookings/**
+          filters:
+            - name: AuthFilter
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    hostname: localhost
